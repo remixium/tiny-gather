@@ -3,7 +3,7 @@
 A small 2D multiplayer resource-gathering game, built as a test environment for
 agentic players. **This repository contains the game only.**
 
-See `game-design.md` for the full design, the target demo that drives it, and
+See `docs/game-design.md` for the full design, the target demo that drives it, and
 the list of open decisions.
 
 ## Who consumes this
@@ -26,24 +26,31 @@ machine-readable. Watch its serialized size; agents pay per token.
 
 ## Status
 
-The repository is **documentation only** at present. No `go.mod`, no source, no
-tests. Build and test commands land with the first phase of implementation.
-
-Planned layout:
+Phase 0 is done: Go module, package skeleton, Makefile, CI. The packages below
+are documented but empty — the simulation itself lands in phase 1.
 
 ```
-cmd/tg-server/      authoritative server
-cmd/tg-play/        human client (terminal, then Ebiten)
-cmd/tg-scenario/    headless scripted client and scenario runner
-pkg/protocol/       wire types — public; this is the contract agents code against
-internal/world/     grid, entities, seeded worldgen
-internal/rules/     action validation and outcomes
-internal/sim/       tick loop, deterministic ordering, RNG
-internal/observe/   observation builder
-internal/wsserver/  transport
-client/conn/        reusable protocol client
-client/render/      terminal and Ebiten renderers
-fixtures/           scenario world layouts
+make          # list targets
+make ci       # everything CI runs: fmt, tidy, vet, build, race tests
+make test     # tests only
+```
+
+Layout, where `*` marks what exists today:
+
+```
+  cmd/tg-server/      authoritative server
+  cmd/tg-play/        human client (terminal, then Ebiten)
+  cmd/tg-scenario/    headless scripted client and scenario runner
+* pkg/protocol/       wire types — public; the contract agents code against
+* internal/world/     grid, entities, seeded worldgen
+* internal/rules/     action validation and outcomes
+* internal/sim/       tick loop, deterministic ordering, RNG
+* internal/observe/   observation builder
+  internal/wsserver/  transport
+  client/conn/        reusable protocol client
+  client/render/      terminal and Ebiten renderers
+* fixtures/           scenario world layouts
+* docs/               design
 ```
 
 Only `protocol` is public. Everything else stays `internal/`.

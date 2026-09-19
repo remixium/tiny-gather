@@ -1,0 +1,39 @@
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache: true
+
+      - name: gofmt
+        run: make fmt-check
+
+      - name: go mod tidy
+        run: make tidy-check
+
+      - name: vet
+        run: make vet
+
+      - name: build
+        run: make build
+
+      - name: test (race)
+        run: make race
