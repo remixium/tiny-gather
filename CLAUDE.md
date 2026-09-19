@@ -26,8 +26,10 @@ machine-readable. Watch its serialized size; agents pay per token.
 
 ## Status
 
-Phase 0 is done: Go module, package skeleton, Makefile, CI. The packages below
-are documented but empty — the simulation itself lands in phase 1.
+Phase 1 is done: the deterministic core runs, with no network layer yet. A
+simulation can be created from a seed or a fixture, players can be joined,
+actions enqueued and ticks stepped, and observations built. What is missing is
+transport, a client, and the scenario runner.
 
 ```
 make          # list targets
@@ -42,9 +44,10 @@ Layout, where `*` marks what exists today:
   cmd/tg-play/        human client (terminal, then Ebiten)
   cmd/tg-scenario/    headless scripted client and scenario runner
 * pkg/protocol/       wire types — public; the contract agents code against
-* internal/world/     grid, entities, seeded worldgen
+* internal/rng/       the one deterministic random source
+* internal/world/     grid, entities, seeded worldgen, fixtures, path costs
 * internal/rules/     action validation and outcomes
-* internal/sim/       tick loop, deterministic ordering, RNG
+* internal/sim/       tick loop, deterministic ordering, RNG ownership
 * internal/observe/   observation builder
   internal/wsserver/  transport
   client/conn/        reusable protocol client
@@ -54,6 +57,11 @@ Layout, where `*` marks what exists today:
 ```
 
 Only `protocol` is public. Everything else stays `internal/`.
+
+Actions implemented so far are `move`, `gather`, `drop`, `pickup`, `deposit`,
+`withdraw` and `say`. Building, equipment and combat arrive with v2 and v3; the
+reason codes `not_equipped` and `out_of_range` are reserved for them and are not
+yet produced.
 
 ## Invariants
 

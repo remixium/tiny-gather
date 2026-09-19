@@ -91,7 +91,7 @@ again.
   `action_rejected { action, reason }`, where reason is one of:
   `not_adjacent`, `out_of_range`, `inventory_full`, `container_full`,
   `wrong_resource`, `node_empty`, `no_such_entity`, `insufficient_items`,
-  `blocked_tile`, `not_equipped`, `rate_limited`.
+  `blocked_tile`, `not_equipped`, `rate_limited`, `malformed_action`.
 - **Resolved.** The action was valid and was attempted. It may still not have
   achieved anything. `action_resolved { action, success, consumed, produced }`.
 
@@ -114,12 +114,15 @@ under a flat item cap.
 
 | Item | Stack size | Source |
 | --- | --- | --- |
-| `wood` | 50 | trees |
-| `ore` | 50 | rocks |
+| `wood` | 1 | trees |
+| `ore` | 1 | rocks |
 | `gold` | 999 | gold veins, goblin drops |
 | `hammer` | 1 | seeded in the world; not craftable in v1 |
 
 - Player inventory: 10 slots.
+- Resources do not stack, so ten slots means ten items and the capacity limit
+  still bites at the scale the scenarios need. Slots exist for currency, which
+  stacks deeply and could not be carried under a flat item cap.
 - Gold is an ordinary item occupying a slot. It is not an abstract balance —
   carrying wealth should have a cost and should be losable.
 - Nodes are finite (tree = 5 wood, rock = 8 ore, gold vein = 10 gold), disappear

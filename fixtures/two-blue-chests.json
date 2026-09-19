@@ -1,0 +1,28 @@
+{
+  "name": "two-blue-chests",
+  "w": 24,
+  "h": 16,
+  "landmarks": [
+    { "name": "house", "pos": [3, 3], "w": 4, "h": 4 },
+    { "name": "pond", "pos": [17, 9], "w": 4, "h": 4 }
+  ],
+  "blocked": [
+    [3, 3], [4, 3], [5, 3], [6, 3],
+    [3, 4], [6, 4],
+    [3, 5], [6, 5],
+    [3, 6], [5, 6], [6, 6],
+    [17, 9], [18, 9], [19, 9], [20, 9],
+    [17, 10], [18, 10], [19, 10], [20, 10],
+    [17, 11], [18, 11], [19, 11], [20, 11],
+    [17, 12], [18, 12], [19, 12], [20, 12]
+  ],
+  "entities": [
+    { "kind": "player", "name": "agent", "pos": [10, 8] },
+    { "kind": "chest", "color": "blue", "pos": [8, 5] },
+    { "kind": "chest", "color": "blue", "pos": [16, 8] },
+    { "kind": "chest", "color": "red", "filter": "ore", "pos": [10, 11] },
+    { "kind": "tree", "resource": "wood", "remaining": 2, "pos": [11, 8] },
+    { "kind": "tree", "resource": "wood", "remaining": 5, "pos": [12, 6] },
+    { "kind": "rock", "resource": "ore", "remaining": 8, "pos": [9, 9] }
+  ]
+}
