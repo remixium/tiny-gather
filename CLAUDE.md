@@ -1,7 +1,15 @@
 # tiny-gather
 
-A small 2D multiplayer resource-gathering game, built as a test environment for
+A small 2D multiplayer resource-gathering game, built as an environment for
 agentic players. **This repository contains the game only.**
+
+It is a personal project, and a step toward robotics rather than toward a
+benchmark. The interesting parts are embodiment and partial observability: an
+agent perceives only what is near it, has to keep its own model of everything
+else, and acts through the same limited interface a human does. Nothing here
+scores an agent or compares implementations, and no scenario should be built to
+force a particular response — the game's job is to make interesting responses
+possible, not to elicit them.
 
 See `docs/game-design.md` for the full design, the target demo that drives it, and
 the list of open decisions.
@@ -81,6 +89,10 @@ These were decided deliberately and are expensive to recover once broken. Do not
 change them without saying so explicitly.
 
 **Determinism.** A run must be reproducible from `(seed, ordered input log)`.
+This is for debugging and because replayable simulation is ordinary robotics
+practice — not for measurement. With a language model and a probabilistic
+decision layer both in play, the world is the one source of randomness that can
+be held still, which is what makes the others possible to study.
 
 - All randomness comes from one PRNG stream, seeded from the world seed, owned
   by `sim`, drawn only during tick resolution in a fixed entity order. Never the
@@ -113,9 +125,9 @@ possible. The game records what moved, never what was promised.
 **Events.** Every transfer and outcome is logged with a tick stamp and enough
 detail to compute a rate. Events are the substrate agents learn from.
 
-## Evaluation
+## Fixtures
 
-Scenarios in `game-design.md` double as a reproducible test set: a fixed world
-layout, a seed, and a scripted counterparty. Once outcomes are stochastic a
-scenario is scored over N seeded runs rather than as a single pass/fail, which
-is why the determinism invariants matter.
+A fixture is a hand-written world loaded in place of a generated one, so a
+situation can be set up directly rather than hunted for across seeds. They are
+for trying things out and for testing the game's own rules. They are not a
+scoring apparatus.

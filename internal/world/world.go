@@ -2,7 +2,6 @@ package world
 
 import (
 	"math"
-	"sort"
 
 	"github.com/vadremix/tiny-gather/pkg/protocol"
 )
@@ -73,12 +72,15 @@ func (w *World) Remove(id ID) {
 
 // IDs returns every entity id in ascending order.
 //
-// This is the iteration order the tick loop resolves in. The slice is a copy, so
-// callers may add or remove entities while ranging over it.
+// This is the iteration order the tick loop resolves in. The slice is a copy,
+// so callers may add or remove entities while ranging over it.
+//
+// No sort is needed: Add assigns ids from a counter that only increases and
+// appends, and Remove preserves the relative order of what is left, so w.order
+// is always ascending. TestEntityOrderIsAscending holds that to account.
 func (w *World) IDs() []ID {
 	out := make([]ID, len(w.order))
 	copy(out, w.order)
-	sort.Slice(out, func(i, j int) bool { return out[i] < out[j] })
 	return out
 }
 

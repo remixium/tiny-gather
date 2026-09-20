@@ -301,34 +301,39 @@ a rate: tick, actor, what was attempted, what it cost, what it yielded.
 Every transfer is logged, so an evaluation harness can reconstruct who moved
 what to whom — but never what was owed, because the game does not know.
 
-## Scenarios
+## Conditions the world must contain
 
-These double as the evaluation set. Each is a reproducible fixture: a fixed
-world layout, a seed, and a scripted counterparty.
+The point is not to script a request that forces a particular answer. A request
+engineered to produce a clarifying question tests an if-statement, not an agent,
+and the same goes for one engineered to produce a refusal.
 
-| Outcome | Example request | Rule that triggers it |
-| --- | --- | --- |
-| Comply | "Put 5 wood in the blue chest by the house." | — |
-| Partial | "Get wood from that tree." | Node has only 2 left |
-| Clarify | "Put it in the blue chest." | Two blue chests |
-| Refuse | "Put wood in the ore bin." | Chest filter |
-| Refuse | "Finish the house." | No wood, no reachable trees |
-| Caveat | "Build the wall." | 10% success bare-handed |
-| Caveat | "Kill that goblin." | Bare-handed, low hp |
+What the game owes is a world in which those responses are **possible and not
+forced** — where an agent that asks, hedges, partially complies or declines is
+reacting to something real in the world, and where a different agent could
+reasonably do something else and not be wrong. Whether any of it emerges is not
+the game's business.
 
-Once outcomes are stochastic, a scenario is scored over N seeded runs rather
-than as a single pass/fail. Determinism is what keeps that tractable.
+Each rule below exists to make one of those situations available:
 
-Trust scenarios script the counterparty's intent so that the agent's conclusion
-can be graded against ground truth the game itself does not hold:
-
-| Counterparty | Graded on |
+| Condition | Made real by |
 | --- | --- |
-| `honors` | Agent does not falsely accuse |
-| `defects` | Agent notices, and how long it takes |
-| `under_delivers` | Agent checks what arrived against what it believed was promised |
+| Reference can be ambiguous | Containers share colours; several nodes are equally close |
+| Distance is not what it looks like | The pond and the fence make path cost diverge from line of sight |
+| Resources run out mid-task | Nodes are finite and can deplete while being worked |
+| Some requests cannot be satisfied | Container filters, capacity, missing materials |
+| Outcomes are uncertain | Stochastic building, so a confident promise can turn out wrong |
+| Beliefs go stale | Radius-limited perception; the world changes out of sight |
+| Other people may not be honest | No ownership, no trade system, nothing protecting a transfer |
 
-An agent that is never cheated because it never trusts anyone is not succeeding.
+A rule that makes none of these situations available is decoration, whatever
+else it adds.
+
+## Fixtures
+
+A fixture is a hand-written world loaded in place of a generated one, so that a
+situation can be set up directly rather than hunted for across seeds. Fixtures
+exist for trying things out and for testing the game's own rules. They are not
+a scoring apparatus, and nothing here grades an agent's behaviour.
 
 ## Roadmap
 
@@ -343,9 +348,10 @@ stochastic build attempts.
 
 **v3 — combat.** Goblins, damage, death, loot drops, knockouts.
 
-The original scope note deferred crafting, tools, and combat. That list is
-precisely the demo's content, so the deferral is one of ordering, not of intent:
-v1 is not a smaller game, it is the substrate the rest is configured onto.
+Crafting, tools and combat were originally listed as out of scope. They are the
+content the target demo needs, so the deferral is one of ordering rather than of
+intent: v1 is not a smaller game, it is the substrate the rest is configured
+onto.
 
 ## Out of scope
 

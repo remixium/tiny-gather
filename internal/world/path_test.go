@@ -106,3 +106,35 @@ func TestGeneratedWorldIsAmbiguous(t *testing.T) {
 		}
 	}
 }
+
+// TestEntityOrderIsAscending guards the assumption that lets IDs skip sorting.
+// Resolution order is the determinism invariant, so if adds and removes ever
+// stop leaving w.order ascending, that has to fail loudly here rather than
+// quietly reorder a tick.
+func TestEntityOrderIsAscending(t *testing.T) {
+	w := New(20, 20)
+	var added []*Entity
+	for i := 0; i < 10; i++ {
+		added = append(added, w.Add(&Entity{
+			Kind: KindTree, Pos: protocol.Pos{X: i, Y: 0},
+			Gatherable: &Gatherable{Resource: protocol.Wood, Remaining: 1},
+		}))
+	}
+
+	// Remove from the middle, the front and the end.
+	w.Remove(added[4].ID)
+	w.Remove(added[0].ID)
+	w.Remove(added[9].ID)
+	w.Add(&Entity{Kind: KindRock, Pos: protocol.Pos{X: 15, Y: 15},
+		Gatherable: &Gatherable{Resource: protocol.Ore, Remaining: 1}})
+
+	ids := w.IDs()
+	if len(ids) != 8 {
+		t.Fatalf("world holds %d entities, want 8", len(ids))
+	}
+	for i := 1; i < len(ids); i++ {
+		if ids[i-1] >= ids[i] {
+			t.Fatalf("IDs() returned %v, which is not strictly ascending", ids)
+		}
+	}
+}
