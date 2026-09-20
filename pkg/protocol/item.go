@@ -13,14 +13,12 @@ const (
 // stackSizes records how many of an item occupy a single inventory slot. An
 // item missing from the table does not stack.
 //
-// Resources deliberately do not stack, which keeps a player's effective
-// capacity at ten items and preserves the decision the cap exists to create:
-// asked for fifteen ore, an agent has to come back with ten and say so. Slots
-// exist for the sake of currency, which stacks deeply and would be uncarryable
-// under a flat item cap.
+// Capacity is measured in slots rather than items so that things which stack
+// very differently can share one inventory: a deep stack of currency and a
+// single unstackable tool cannot coexist under a flat item cap.
 var stackSizes = map[Item]int{
-	Wood: 1,
-	Ore:  1,
+	Wood: 50,
+	Ore:  50,
 }
 
 // AllItems lists every defined item in a stable order.

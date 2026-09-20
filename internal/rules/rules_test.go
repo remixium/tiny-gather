@@ -111,7 +111,8 @@ func TestRejectionReasons(t *testing.T) {
 		{
 			name: "gather with nowhere to put it",
 			setup: func(s *scene) {
-				s.player.Carrier.Inv.Add(protocol.Ore, 10)
+				s.player.Carrier.Inv = world.NewInventory(1)
+				s.player.Carrier.Inv.Add(protocol.Ore, 50)
 			},
 			act: func(s *scene) protocol.Action {
 				return protocol.Action{Kind: protocol.ActGather, Target: s.tree.Ref()}
@@ -185,8 +186,8 @@ func TestRejectionReasons(t *testing.T) {
 		{
 			name: "deposit into a full container",
 			setup: func(s *scene) {
-				// Twelve non-stacking wood fills all twelve slots.
-				s.chest.Container.Inv.Add(protocol.Wood, 12)
+				s.chest.Container.Inv = world.NewInventory(1)
+				s.chest.Container.Inv.Add(protocol.Wood, 50)
 				s.player.Carrier.Inv.Add(protocol.Wood, 3)
 			},
 			act: func(s *scene) protocol.Action {
@@ -200,7 +201,8 @@ func TestRejectionReasons(t *testing.T) {
 		{
 			name: "pick up with a full inventory",
 			setup: func(s *scene) {
-				s.player.Carrier.Inv.Add(protocol.Wood, 10)
+				s.player.Carrier.Inv = world.NewInventory(1)
+				s.player.Carrier.Inv.Add(protocol.Wood, 50)
 			},
 			act: func(s *scene) protocol.Action {
 				return protocol.Action{Kind: protocol.ActPickup, Target: s.pile.Ref()}

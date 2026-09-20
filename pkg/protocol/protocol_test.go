@@ -59,7 +59,7 @@ func TestRejectionCarriesNoOutcome(t *testing.T) {
 	}
 }
 
-func TestSlotAccountingForNonStackingItems(t *testing.T) {
+func TestSlotsFor(t *testing.T) {
 	tests := []struct {
 		item Item
 		n    int
@@ -67,8 +67,10 @@ func TestSlotAccountingForNonStackingItems(t *testing.T) {
 	}{
 		{Wood, 0, 0},
 		{Wood, 1, 1},
-		{Wood, 10, 10},
-		{Ore, 7, 7},
+		{Wood, 50, 1},
+		{Wood, 51, 2},
+		{Wood, 100, 2},
+		{Ore, 500, 10},
 	}
 	for _, tc := range tests {
 		if got := SlotsFor(tc.item, tc.n); got != tc.want {

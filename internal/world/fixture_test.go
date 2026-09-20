@@ -85,7 +85,7 @@ func TestFixtureRejectsBadInput(t *testing.T) {
 		{"unknown resource", `{"name":"x","w":5,"h":5,"entities":[
 			{"kind":"tree","resource":"mithril","remaining":1,"pos":[1,1]}]}`},
 		{"contents do not fit", `{"name":"x","w":5,"h":5,"entities":[
-			{"kind":"chest","pos":[1,1],"slots":2,"contents":{"wood":9}}]}`},
+			{"kind":"chest","pos":[1,1],"slots":1,"contents":{"wood":99}}]}`},
 		{"blocked tile off the map", `{"name":"x","w":5,"h":5,"blocked":[[9,9]],"entities":[]}`},
 	}
 	for _, tc := range tests {

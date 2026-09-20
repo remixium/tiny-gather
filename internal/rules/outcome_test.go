@@ -3,6 +3,7 @@ package rules
 import (
 	"testing"
 
+	"github.com/vadremix/tiny-gather/internal/world"
 	"github.com/vadremix/tiny-gather/pkg/protocol"
 )
 
@@ -12,7 +13,9 @@ import (
 // its behalf.
 func TestPartialDepositIsASuccess(t *testing.T) {
 	s := newScene(t)
-	s.chest.Container.Inv.Add(protocol.Wood, 9) // 3 of 12 slots left
+	// One slot holding 47 of a 50-stack: room for exactly 3 more.
+	s.chest.Container.Inv = world.NewInventory(1)
+	s.chest.Container.Inv.Add(protocol.Wood, 47)
 	s.player.Carrier.Inv.Add(protocol.Wood, 8)
 
 	ev := resolution(t, s.apply(protocol.Action{
@@ -29,14 +32,16 @@ func TestPartialDepositIsASuccess(t *testing.T) {
 	if got := s.player.Carrier.Inv.Count(protocol.Wood); got != 5 {
 		t.Fatalf("player kept %d wood, want 5", got)
 	}
-	if got := s.chest.Container.Inv.Count(protocol.Wood); got != 12 {
-		t.Fatalf("chest holds %d wood, want 12", got)
+	if got := s.chest.Container.Inv.Count(protocol.Wood); got != 50 {
+		t.Fatalf("chest holds %d wood, want 50", got)
 	}
 }
 
 func TestPartialPickup(t *testing.T) {
 	s := newScene(t)
-	s.player.Carrier.Inv.Add(protocol.Wood, 7) // 3 slots left, pile holds 20 ore
+	// One slot holding 47 ore: room for 3 of the pile's 20.
+	s.player.Carrier.Inv = world.NewInventory(1)
+	s.player.Carrier.Inv.Add(protocol.Ore, 47)
 
 	ev := resolution(t, s.apply(protocol.Action{
 		Kind: protocol.ActPickup, Target: s.pile.Ref(),

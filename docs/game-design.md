@@ -114,15 +114,14 @@ under a flat item cap.
 
 | Item | Stack size | Source |
 | --- | --- | --- |
-| `wood` | 1 | trees |
-| `ore` | 1 | rocks |
+| `wood` | 50 | trees |
+| `ore` | 50 | rocks |
 | `gold` | 999 | gold veins, goblin drops |
 | `hammer` | 1 | seeded in the world; not craftable in v1 |
 
-- Player inventory: 10 slots.
-- Resources do not stack, so ten slots means ten items and the capacity limit
-  still bites at the scale the scenarios need. Slots exist for currency, which
-  stacks deeply and could not be carried under a flat item cap.
+- Player inventory: 10 slots. Carrying capacity is not intended as a limit that
+  the scenarios exercise; slots exist so that currency and tools can share an
+  inventory with resources.
 - Gold is an ordinary item occupying a slot. It is not an abstract balance —
   carrying wealth should have a cost and should be losable.
 - Nodes are finite (tree = 5 wood, rock = 8 ore, gold vein = 10 gold), disappear
@@ -310,7 +309,6 @@ world layout, a seed, and a scripted counterparty.
 | Outcome | Example request | Rule that triggers it |
 | --- | --- | --- |
 | Comply | "Put 5 wood in the blue chest by the house." | — |
-| Partial | "Bring me 15 ore." | Inventory slots |
 | Partial | "Get wood from that tree." | Node has only 2 left |
 | Clarify | "Put it in the blue chest." | Two blue chests |
 | Refuse | "Put wood in the ore bin." | Chest filter |
