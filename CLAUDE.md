@@ -26,21 +26,20 @@ machine-readable. Watch its serialized size; agents pay per token.
 
 ## Status
 
-Phase 1 is done: the deterministic core runs, with no network layer yet. A
-simulation can be created from a seed or a fixture, players can be joined,
-actions enqueued and ticks stepped, and observations built. What is missing is
-transport, a client, and the scenario runner.
+Phase 2 is done: the simulation is served over WebSockets and two clients can
+share a world. What is missing is a renderer and the scenario runner.
 
 ```
 make          # list targets
 make ci       # everything CI runs: fmt, tidy, vet, build, race tests
-make test     # tests only
+go run ./cmd/tg-server -addr localhost:8080 -seed 42
+go run ./cmd/tg-server -fixture fixtures/two-blue-chests.json
 ```
 
 Layout, where `*` marks what exists today:
 
 ```
-  cmd/tg-server/      authoritative server
+* cmd/tg-server/      authoritative server
   cmd/tg-play/        human client (terminal, then Ebiten)
   cmd/tg-scenario/    headless scripted client and scenario runner
 * pkg/protocol/       wire types — public; the contract agents code against
@@ -49,8 +48,8 @@ Layout, where `*` marks what exists today:
 * internal/rules/     action validation and outcomes
 * internal/sim/       tick loop, deterministic ordering, RNG ownership
 * internal/observe/   observation builder
-  internal/wsserver/  transport
-  client/conn/        reusable protocol client
+* internal/wsserver/  transport
+* client/conn/        reusable protocol client
   client/render/      terminal and Ebiten renderers
 * fixtures/           scenario world layouts
 * docs/               design
@@ -62,6 +61,19 @@ Actions implemented so far are `move`, `gather`, `drop`, `pickup`, `deposit`,
 `withdraw` and `say`. Building, equipment and combat arrive with v2 and v3; the
 reason codes `not_equipped` and `out_of_range` are reserved for them and are not
 yet produced.
+
+## Concurrency
+
+The simulation is not safe for concurrent use, and making it so would invite
+the nondeterminism the design rules out. Every piece of simulation state is
+owned by the goroutine running `wsserver.Server.Run`. Connections read frames
+on their own goroutines and hand them over through channels; nothing else
+touches the world. Commands are drained at tick boundaries, never applied
+mid-tick.
+
+A live server is not itself reproducible, because network timing decides which
+tick an action lands on. Reproducibility belongs to replay: a recorded seed and
+ordered input log driven through the simulation directly.
 
 ## Invariants
 
