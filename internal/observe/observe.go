@@ -42,7 +42,9 @@ func Build(w *world.World, tick uint64, viewer world.ID) protocol.Observation {
 	// because you walked away from it, and phrases like "the chest by the house"
 	// have to keep working at a distance.
 	for _, l := range w.Landmarks {
-		obs.Landmark = append(obs.Landmark, protocol.LandmarkView{Name: l.Name, Pos: l.Center()})
+		obs.Landmark = append(obs.Landmark, protocol.LandmarkView{
+			Name: l.Name, Pos: l.Center(), W: l.W, H: l.H,
+		})
 	}
 
 	flood := w.Flood(self.Pos)

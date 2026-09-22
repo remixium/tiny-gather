@@ -14,42 +14,6 @@ import (
 // sidebarWidth is the fixed width of the panel to the right of the map.
 const sidebarWidth = 32
 
-var (
-	styleBase    = tcell.StyleDefault
-	styleDim     = tcell.StyleDefault.Foreground(tcell.ColorDarkGray)
-	styleWall    = tcell.StyleDefault.Foreground(tcell.ColorGray)
-	styleWallDim = tcell.StyleDefault.Foreground(tcell.ColorDarkSlateGray)
-	styleSelf    = tcell.StyleDefault.Foreground(tcell.ColorWhite).Bold(true)
-	stylePlayer  = tcell.StyleDefault.Foreground(tcell.ColorAqua)
-	styleTree    = tcell.StyleDefault.Foreground(tcell.ColorGreen)
-	styleRock    = tcell.StyleDefault.Foreground(tcell.ColorSilver)
-	styleItem    = tcell.StyleDefault.Foreground(tcell.ColorFuchsia)
-	styleStock   = tcell.StyleDefault.Foreground(tcell.ColorYellow)
-	styleLabel   = tcell.StyleDefault.Foreground(tcell.ColorOlive)
-	styleTitle   = tcell.StyleDefault.Bold(true)
-	styleNotice  = tcell.StyleDefault.Foreground(tcell.ColorYellow)
-	styleInput   = tcell.StyleDefault.Reverse(true)
-)
-
-// chestStyle colours a container by its declared colour, so "the blue chest"
-// on screen is the blue chest in the observation.
-func chestStyle(color string) tcell.Style {
-	switch color {
-	case "blue":
-		return styleBase.Foreground(tcell.ColorBlue)
-	case "red":
-		return styleBase.Foreground(tcell.ColorRed)
-	case "green":
-		return styleBase.Foreground(tcell.ColorGreen)
-	case "yellow":
-		return styleBase.Foreground(tcell.ColorYellow)
-	case "grey", "gray":
-		return styleBase.Foreground(tcell.ColorGray)
-	default:
-		return styleBase.Foreground(tcell.ColorWhite)
-	}
-}
-
 // draw repaints the whole screen from the current frame.
 func (u *ui) draw() {
 	s := u.screen
@@ -73,13 +37,15 @@ func (u *ui) draw() {
 // drawMap paints a viewport of the world centred on the player.
 func (u *ui) drawMap(x0, y0, w, h int) {
 	if u.world.W == 0 || u.world.H == 0 {
-		u.text(x0, y0, "waiting for map...", styleDim)
+		u.text(x0, y0, "waiting for map...", styleMuted)
 		return
 	}
 
 	var self protocol.Pos
+	var landmarks []protocol.LandmarkView
 	if u.haveFrame {
 		self = u.frame.Observation.Self.Pos
+		landmarks = u.frame.Observation.Landmark
 	}
 
 	// The viewport follows the player but never scrolls past the map edge,
@@ -101,12 +67,14 @@ func (u *ui) drawMap(x0, y0, w, h int) {
 			}
 			seen := u.haveFrame && dist(self, p) <= u.world.Radius
 			switch {
-			case blocked[p] && seen:
-				u.screen.SetContent(x0+sx, y0+sy, '#', nil, styleWall)
 			case blocked[p]:
-				u.screen.SetContent(x0+sx, y0+sy, '#', nil, styleWallDim)
+				r, st := terrainStyle(p, landmarks)
+				if !seen {
+					st = faded(st)
+				}
+				u.screen.SetContent(x0+sx, y0+sy, r, nil, st)
 			case seen:
-				u.screen.SetContent(x0+sx, y0+sy, '.', nil, styleDim)
+				u.screen.SetContent(x0+sx, y0+sy, '.', nil, styleFloor)
 			}
 		}
 	}
@@ -124,7 +92,7 @@ func (u *ui) drawMap(x0, y0, w, h int) {
 	obs := u.frame.Observation
 
 	for _, o := range obs.Object {
-		r, st := glyph(o)
+		r, st := objectStyle(o)
 		put(o.Pos, r, st)
 	}
 	for _, p := range obs.Player {
@@ -145,10 +113,7 @@ func (u *ui) drawMap(x0, y0, w, h int) {
 		}
 		for i, r := range l.Name {
 			cx := lx + i
-			if cx < 0 || cx >= w {
-				continue
-			}
-			if occupied(u.screen, x0+cx, y0+ly) {
+			if cx < 0 || cx >= w || occupied(u.screen, x0+cx, y0+ly) {
 				continue
 			}
 			u.screen.SetContent(x0+cx, y0+ly, r, nil, styleLabel)
@@ -157,86 +122,95 @@ func (u *ui) drawMap(x0, y0, w, h int) {
 }
 
 // occupied reports whether a cell already shows an entity rather than floor,
-// wall or nothing.
+// terrain or nothing.
 func occupied(s tcell.Screen, x, y int) bool {
 	r, _, _, _ := s.GetContent(x, y)
 	switch r {
-	case ' ', '.', '#', 0:
+	case ' ', '.', '#', '~', '|', 0:
 		return false
 	}
 	return true
 }
-func glyph(o protocol.ObjectView) (rune, tcell.Style) {
-	switch o.Type {
-	case "tree":
-		return 'T', styleTree
-	case "rock":
-		return '^', styleRock
-	case "chest":
-		return '=', chestStyle(o.Color)
-	case "stockpile":
-		return 'S', styleStock
-	case "ground_item":
-		return '*', styleItem
-	default:
-		return '?', styleBase
-	}
+
+// part is a run of text in one style, for lines that mix colours.
+type part struct {
+	text  string
+	style tcell.Style
 }
 
 // drawSidebar lists the player's state, what is nearby, and recent messages.
 func (u *ui) drawSidebar(x0, y0, w, h int) {
 	y := y0
-	line := func(s string, st tcell.Style) {
-		if y < y0+h {
-			u.text(x0, y, fit(s, w), st)
-			y++
+	line := func(ps ...part) {
+		if y >= y0+h {
+			return
 		}
+		x := x0
+		for _, p := range ps {
+			if x-x0 >= w {
+				break
+			}
+			s := p.text
+			if x-x0+len(s) > w {
+				s = fit(s, w-(x-x0))
+			}
+			u.text(x, y, s, p.style)
+			x += len(s)
+		}
+		y++
 	}
+	plain := func(s string, st tcell.Style) { line(part{fit(s, w), st}) }
 
 	if !u.haveFrame {
-		line("connecting...", styleDim)
+		plain("connecting...", styleMuted)
 		return
 	}
 	obs := u.frame.Observation
 	self := obs.Self
 
-	line(fmt.Sprintf("%s  tick %d", self.Name, u.frame.Tick), styleTitle)
-	line(fmt.Sprintf("%s at %d,%d", self.ID, self.Pos.X, self.Pos.Y), styleBase)
+	line(part{self.Name, styleTitle}, part{fmt.Sprintf("  tick %d", u.frame.Tick), styleMuted})
+	plain(fmt.Sprintf("%s at %d,%d", self.ID, self.Pos.X, self.Pos.Y), styleBase)
 	if self.Doing != "" {
-		line("doing: "+self.Doing, styleNotice)
+		plain("doing: "+self.Doing, styleNotice)
 	}
-	line("", styleBase)
+	plain("", styleBase)
 
-	line(fmt.Sprintf("inventory (%d/%d slots)", self.UsedSlots, self.Slots), styleTitle)
+	plain(fmt.Sprintf("inventory  %d/%d slots", self.UsedSlots, self.Slots), styleTitle)
 	if len(self.Inventory) == 0 {
-		line("  empty", styleDim)
+		plain("  empty", styleMuted)
 	}
 	for _, it := range sortedItems(self.Inventory) {
-		line(fmt.Sprintf("  %-8s %d", it, self.Inventory[it]), styleBase)
+		line(
+			part{"  ", styleBase},
+			part{fmt.Sprintf("%-8s", it), itemStyle(it)},
+			part{fmt.Sprint(self.Inventory[it]), styleBase},
+		)
 	}
-	line("", styleBase)
+	plain("", styleBase)
 
-	line("nearby", styleTitle)
+	plain("nearby", styleTitle)
 	near := append([]protocol.ObjectView(nil), obs.Object...)
 	sort.Slice(near, func(i, j int) bool { return near[i].Distance < near[j].Distance })
 	shown := 0
 	for _, o := range near {
 		if shown >= 8 {
-			line(fmt.Sprintf("  ... %d more", len(near)-shown), styleDim)
+			plain(fmt.Sprintf("  ... %d more", len(near)-shown), styleMuted)
 			break
 		}
-		line("  "+summary(o), styleBase)
+		// The list line takes the object's own colour, so the entry and the
+		// glyph on the map read as the same thing.
+		_, st := objectStyle(o)
+		plain("  "+summary(o), st.Bold(false))
 		shown++
 	}
 	for _, p := range obs.Player {
-		st := stylePlayer
 		note := ""
 		if p.Thinking {
 			note = " (thinking)"
 		}
-		line(fmt.Sprintf("  & %s %.0f away%s", p.Name, p.Distance, note), st)
+		plain(fmt.Sprintf("  & %s %.0f away%s", p.Name, p.Distance, note), stylePlayer.Bold(false))
 	}
-	line("", styleBase)
+	plain("", styleBase)
 
 	// Whatever room is left goes to the log, newest at the bottom.
 	remaining := y0 + h - y
@@ -247,8 +221,8 @@ func (u *ui) drawSidebar(x0, y0, w, h int) {
 	if start < 0 {
 		start = 0
 	}
-	for _, l := range u.log[start:] {
-		line(l, styleBase)
+	for _, e := range u.log[start:] {
+		plain(e.text, e.style)
 	}
 }
 
@@ -286,15 +260,15 @@ func summary(o protocol.ObjectView) string {
 func (u *ui) drawBottom(y, w int) {
 	switch u.mode {
 	case modeChat:
-		u.text(0, y, fit("say: "+string(u.input), w), styleInput)
+		u.text(0, y, fit("say: "+string(u.input), w), stylePrompt)
 	case modeCommand:
-		u.text(0, y, fit(":"+string(u.input), w), styleInput)
+		u.text(0, y, fit(":"+string(u.input), w), stylePrompt)
 	default:
 		if u.notice != "" {
 			u.text(0, y, fit(u.notice, w), styleNotice)
 			return
 		}
-		u.text(0, y, fit("wasd move  g gather  p pick up  t talk  : command  q quit", w), styleDim)
+		u.text(0, y, fit("wasd move  g gather  p pick up  t talk  : command  q quit", w), styleMuted)
 	}
 }
 
@@ -305,11 +279,14 @@ func (u *ui) text(x, y int, s string, st tcell.Style) {
 }
 
 func fit(s string, w int) string {
+	if w <= 0 {
+		return ""
+	}
 	if len(s) <= w {
 		return s + strings.Repeat(" ", w-len(s))
 	}
-	if w <= 1 {
-		return s[:w]
+	if w == 1 {
+		return s[:1]
 	}
 	return s[:w-1] + "…"
 }

@@ -55,7 +55,7 @@ type ui struct {
 
 	mode   mode
 	input  []rune
-	log    []string
+	log    []entry
 	notice string
 }
 
@@ -119,14 +119,14 @@ func (u *ui) accept(f conn.Frame) {
 	}
 
 	for _, ev := range f.Events {
-		if line := u.describe(ev); line != "" {
-			u.say(line)
+		if text, st := u.describe(ev); text != "" {
+			u.say(text, st)
 		}
 	}
 }
 
-func (u *ui) say(line string) {
-	u.log = append(u.log, line)
+func (u *ui) say(text string, st tcell.Style) {
+	u.log = append(u.log, entry{text: text, style: st})
 	if len(u.log) > LogLines {
 		u.log = u.log[len(u.log)-LogLines:]
 	}

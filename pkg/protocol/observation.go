@@ -78,9 +78,20 @@ type PlayerView struct {
 
 // LandmarkView is a named region used to make phrases like "the chest by the
 // house" refer to something.
+//
+// Pos is the centre. W and H give the extent, so a client can tell which
+// impassable tiles are the pond and which are the house.
 type LandmarkView struct {
 	Name string `json:"name"`
 	Pos  Pos    `json:"pos"`
+	W    int    `json:"w,omitempty"`
+	H    int    `json:"h,omitempty"`
+}
+
+// Contains reports whether p lies inside the landmark.
+func (l LandmarkView) Contains(p Pos) bool {
+	x0, y0 := l.Pos.X-l.W/2, l.Pos.Y-l.H/2
+	return p.X >= x0 && p.X < x0+l.W && p.Y >= y0 && p.Y < y0+l.H
 }
 
 // MapView is the static map: its size, which tiles are impassable terrain, and
