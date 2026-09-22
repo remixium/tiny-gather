@@ -72,6 +72,7 @@ func Build(w *world.World, tick uint64, viewer world.ID) protocol.Observation {
 		view := protocol.ObjectView{
 			ID:       e.Ref(),
 			Type:     string(e.Kind),
+			Pos:      e.Pos,
 			Distance: dist,
 			PathCost: cost,
 			Near:     w.NearestLandmark(e.Pos),
@@ -98,6 +99,21 @@ func Build(w *world.World, tick uint64, viewer world.ID) protocol.Observation {
 	})
 
 	return obs
+}
+
+// Map describes the static terrain for a client that has just joined.
+func Map(w *world.World) protocol.MapView {
+	t := w.Terrain
+	view := protocol.MapView{W: t.W, H: t.H, Radius: Radius}
+	for y := 0; y < t.H; y++ {
+		for x := 0; x < t.W; x++ {
+			p := protocol.Pos{X: x, Y: y}
+			if t.Blocked(p) {
+				view.Blocked = append(view.Blocked, p)
+			}
+		}
+	}
+	return view
 }
 
 // ForPlayer selects the events a player perceives.

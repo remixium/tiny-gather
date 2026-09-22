@@ -225,8 +225,10 @@ but must carry real risk, or the discovery is trivial rather than interesting.
 Built by the server from world state. Code precomputes spatial relationships so
 that the agent never does geometry.
 
-**Observation is radius-limited** (proposed: 12 tiles). Static landmarks and map
-geometry are always included; entities are reported only when in range. This is
+**Observation is radius-limited** at 12 tiles. Map geometry and the radius
+arrive once, with the welcome, since terrain is static and anyone living there
+knows it. Landmark positions are always included; entities are reported only
+when in range. This is
 what makes trust a real problem: confirming that a hammer was left in a chest
 requires walking there, and the walk is the window in which a counterparty can
 act unseen. A global observation turns detection into arithmetic.
@@ -241,13 +243,13 @@ act unseen. A global observation turns detection into arithmetic.
     "equipped": null
   },
   "objects": [
-    {"id": "chest_2", "type": "chest", "color": "blue", "filter": null,
-     "contents": {"wood": 4}, "free_slots": 8, "near": "house",
-     "distance": 6, "path_cost": 8},
-    {"id": "tree_7", "type": "tree", "remaining": 2,
+    {"id": "chest_2", "type": "chest", "pos": [14, 4], "color": "blue",
+     "filter": null, "contents": {"wood": 4}, "free_slots": 8,
+     "near": "house", "distance": 6, "path_cost": 8},
+    {"id": "tree_7", "type": "tree", "pos": [15, 8], "remaining": 2,
      "distance": 3, "path_cost": 3},
-    {"id": "ground_11", "type": "ground_item", "item": "gold", "count": 22,
-     "distance": 9, "path_cost": 11}
+    {"id": "ground_11", "type": "ground_item", "pos": [20, 12],
+     "item": "gold", "count": 22, "distance": 9, "path_cost": 11}
   ],
   "structures": [
     {"id": "house_1", "blueprint": "house", "placed": 3, "required": 8,

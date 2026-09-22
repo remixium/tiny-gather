@@ -36,6 +36,7 @@ type SelfView struct {
 type ObjectView struct {
 	ID   string `json:"id"`
 	Type string `json:"type"`
+	Pos  Pos    `json:"pos"`
 
 	// Distance is straight-line; PathCost is the number of steps actually
 	// needed, accounting for obstacles, and is -1 when unreachable. They diverge
@@ -80,4 +81,18 @@ type PlayerView struct {
 type LandmarkView struct {
 	Name string `json:"name"`
 	Pos  Pos    `json:"pos"`
+}
+
+// MapView is the static map: its size, which tiles are impassable terrain, and
+// how far a player can perceive.
+//
+// It is sent once, with the welcome, rather than per tick. Terrain is
+// declarative knowledge — anyone who lives somewhere knows where the pond is —
+// so it is not range-limited; and it never changes, so repeating it would be
+// pure cost. Entities, which do change, still arrive only when in range.
+type MapView struct {
+	W       int     `json:"w"`
+	H       int     `json:"h"`
+	Radius  float64 `json:"radius"`
+	Blocked []Pos   `json:"blocked,omitempty"`
 }

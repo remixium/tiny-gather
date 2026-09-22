@@ -34,6 +34,7 @@ type Client struct {
 	ws       *websocket.Conn
 	playerID string
 	token    string
+	mapView  protocol.MapView
 
 	frames chan Frame
 	done   chan struct{}
@@ -103,6 +104,9 @@ func Dial(ctx context.Context, url string, opts Options) (*Client, error) {
 	}
 
 	c.playerID, c.token = welcome.PlayerID, welcome.Token
+	if welcome.Map != nil {
+		c.mapView = *welcome.Map
+	}
 
 	lifetime, cancel := context.WithCancel(context.WithoutCancel(ctx))
 	c.cancel = cancel
@@ -116,6 +120,9 @@ func (c *Client) PlayerID() string { return c.playerID }
 // Token is the credential for reattaching to this player later. It is the
 // client's to keep; it is never shown to another player.
 func (c *Client) Token() string { return c.token }
+
+// Map is the static terrain, received once on join.
+func (c *Client) Map() protocol.MapView { return c.mapView }
 
 // Frames yields one value per tick. It is closed when the connection ends.
 func (c *Client) Frames() <-chan Frame { return c.frames }

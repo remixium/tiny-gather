@@ -211,11 +211,13 @@ func (s *Server) handleJoin(cmd command) {
 
 func (s *Server) welcome(e *world.Entity, token string) protocol.ServerMessage {
 	obs := observe.Build(s.sim.World, s.sim.Tick(), e.ID)
+	m := observe.Map(s.sim.World)
 	return protocol.ServerMessage{
 		Type:        protocol.MsgWelcome,
 		Tick:        s.sim.Tick(),
 		PlayerID:    e.Ref(),
 		Token:       token,
+		Map:         &m,
 		Observation: &obs,
 	}
 }

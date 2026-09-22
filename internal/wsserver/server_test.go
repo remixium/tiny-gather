@@ -314,3 +314,31 @@ func TestUnknownMessageTypeIsRefused(t *testing.T) {
 		t.Fatalf("server replied with %q, want an error", reply.Type)
 	}
 }
+
+// TestWelcomeCarriesTheMap: terrain is declarative knowledge and static, so it
+// arrives once on join rather than being range-limited or repeated per tick.
+func TestWelcomeCarriesTheMap(t *testing.T) {
+	w := world.New(12, 9)
+	w.Terrain.SetBlocked(protocol.Pos{X: 3, Y: 3}, true)
+	w.Terrain.SetBlocked(protocol.Pos{X: 4, Y: 3}, true)
+	h := start(t, sim.NewWithWorld(w, 1))
+	c := h.join(t, "surveyor")
+
+	m := c.Map()
+	if m.W != 12 || m.H != 9 {
+		t.Errorf("map is %dx%d, want 12x9", m.W, m.H)
+	}
+	if len(m.Blocked) != 2 {
+		t.Errorf("map reports %d blocked tiles, want 2", len(m.Blocked))
+	}
+	if m.Radius <= 0 {
+		t.Error("map does not say how far the player can see")
+	}
+
+	// And it is not in the per-tick frame, which would repeat it 20 times a
+	// second for nothing.
+	f := nextFrame(t, c)
+	if f.Observation.Self.ID == "" {
+		t.Fatal("frame had no self view")
+	}
+}

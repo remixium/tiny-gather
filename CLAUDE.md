@@ -34,22 +34,29 @@ machine-readable. Watch its serialized size; agents pay per token.
 
 ## Status
 
-Phase 2 is done: the simulation is served over WebSockets and two clients can
-share a world. What is missing is a renderer and the scenario runner.
+Phase 3 is done: the game is playable in a terminal. A server, a human client
+and the protocol they share all exist; what is missing is the Ebiten renderer
+and anything past v1 content.
 
 ```
 make          # list targets
 make ci       # everything CI runs: fmt, tidy, vet, build, race tests
 go run ./cmd/tg-server -addr localhost:8080 -seed 42
 go run ./cmd/tg-server -fixture fixtures/two-blue-chests.json
+go run ./cmd/tg-play -name ana            # in another terminal
+go run ./cmd/tg-play -token <token>       # printed on quit; reattaches
 ```
+
+In the client: WASD or arrows move, `g` gathers the node you stand beside, `p`
+picks up, `t` or Enter opens chat, `:` opens a command line that mirrors the
+protocol one to one (`deposit chest_2 wood 3`, `withdraw`, `drop`, `gather`,
+`pickup`, `say`, `move`), `q` quits.
 
 Layout, where `*` marks what exists today:
 
 ```
 * cmd/tg-server/      authoritative server
-  cmd/tg-play/        human client (terminal, then Ebiten)
-  cmd/tg-scenario/    headless scripted client and scenario runner
+* cmd/tg-play/        human client (terminal now, Ebiten later)
 * pkg/protocol/       wire types — public; the contract agents code against
 * internal/rng/       the one deterministic random source
 * internal/world/     grid, entities, seeded worldgen, fixtures, path costs
@@ -58,8 +65,9 @@ Layout, where `*` marks what exists today:
 * internal/observe/   observation builder
 * internal/wsserver/  transport
 * client/conn/        reusable protocol client
-  client/render/      terminal and Ebiten renderers
-* fixtures/           scenario world layouts
+* client/render/term/ terminal renderer
+  client/render/      Ebiten renderer, later, on the same conn package
+* fixtures/           hand-written worlds
 * docs/               design
 ```
 
@@ -69,6 +77,12 @@ Actions implemented so far are `move`, `gather`, `drop`, `pickup`, `deposit`,
 `withdraw` and `say`. Building, equipment and combat arrive with v2 and v3; the
 reason codes `not_equipped` and `out_of_range` are reserved for them and are not
 yet produced.
+
+The terminal renderer shows exactly what the server sent. Terrain is drawn
+everywhere because it arrives with the welcome; entities only where the current
+frame reports them; tiles beyond perception range are left blank. There is
+deliberately no client-side memory of things seen earlier — what a human sees
+is what an agent gets.
 
 ## Concurrency
 

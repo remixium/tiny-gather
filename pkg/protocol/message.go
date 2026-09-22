@@ -47,10 +47,12 @@ type ServerMessage struct {
 	Type ServerMessageType `json:"type"`
 	Tick uint64            `json:"tick"`
 
-	// PlayerID and Token appear on a welcome. The token is the client's proof
-	// of identity on a later reconnect, and is never shown to anyone else.
-	PlayerID string `json:"player_id,omitempty"`
-	Token    string `json:"token,omitempty"`
+	// PlayerID, Token and Map appear on a welcome. The token is the client's
+	// proof of identity on a later reconnect, and is never shown to anyone
+	// else.
+	PlayerID string   `json:"player_id,omitempty"`
+	Token    string   `json:"token,omitempty"`
+	Map      *MapView `json:"map,omitempty"`
 
 	Observation *Observation `json:"observation,omitempty"`
 	Events      []Event      `json:"events,omitempty"`

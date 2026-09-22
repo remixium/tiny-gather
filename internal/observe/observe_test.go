@@ -215,3 +215,25 @@ func TestObservationStaysCompact(t *testing.T) {
 	}
 	t.Logf("20-object observation encodes to %d bytes", len(encoded))
 }
+
+// TestObjectsCarryPositions: an agent that knows a tree is "3 away" but not
+// where cannot walk toward it, since move takes a direction. The renderer
+// found this missing; it is a protocol fact, not a rendering one.
+func TestObjectsCarryPositions(t *testing.T) {
+	w, viewer := testWorld()
+	tree := w.Add(&world.Entity{
+		Kind: world.KindTree, Pos: protocol.Pos{X: 33, Y: 27},
+		Gatherable: &world.Gatherable{Resource: protocol.Wood, Remaining: 5},
+	})
+
+	obs := Build(w, 1, viewer.ID)
+	for _, o := range obs.Object {
+		if o.ID == tree.Ref() {
+			if o.Pos != tree.Pos {
+				t.Fatalf("tree reported at %v, want %v", o.Pos, tree.Pos)
+			}
+			return
+		}
+	}
+	t.Fatal("tree not reported")
+}
